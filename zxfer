@@ -185,8 +185,6 @@ fbsd_readonly_properties="aclmode,aclinherit,devices,nbmand,shareiscsi,vscan,xat
 # Properties not supported on Solaris Express 11
 solexp_readonly_properties="jailed,aclmode,shareiscsi"
 
-# 
-
 #
 # Beeps a success sound if -B enabled, and a failure sound if -b or -B enabled.
 # Takes: $exit_status (0 if success, 1 if failure)
@@ -280,21 +278,15 @@ EOT
 
 
 #
-# Append current timestamp to beginning of every echoed line #YOLO
-#
-echo() {
-  if [ $option_t -eq 1 ]; then
-    builtin echo -n "$(date "+[%Y-%m-%d %H:%M:%S] ")"
-  fi
-  builtin echo "$@"
-}
-
-
-#
-# Print out information if in verbose mode
+# Print out information if in verbose mode, append timestamp if option -t set
 #
 echov() {
-  if [ $option_v -eq 1 ]; then echo "$@"; fi
+  if [ $option_v -eq 1 ]; then 
+    if [ $option_t -eq 1 ]; then
+      builtin echo -n "$(date "+[%Y-%m-%d %H:%M:%S] ")"
+    fi
+    echo "$@"
+  fi
 }
 
 
