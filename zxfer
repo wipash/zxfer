@@ -80,12 +80,12 @@
 # set to local. This does not have any real impacts because these properties
 # are not inheritable. See definition for $fbsd_readonly_properties. 
 #
-#     zxfer [-dFnPsv] [-k | -e] [-b | -B] {-N path/to/src | -R path/to/src}
+#     zxfer [-dFnPsv] [-k | -e] [-b | -B] [-t] {-N path/to/src | -R path/to/src}
 #           [-m [c FMRI|pattern[ FMRI|pattern]...]]] [-O user@host]
 #           [-D 'progress dialog options'] [-I properties,to,ignore]
 #           [-T user@host] [-o option1=value1,option2=value2...] [-g days]
 #           destination
-#     zxfer {-S} [-dilpPnv] [-k | -e] [-b | -B] [-f /path/to/rsfile]
+#     zxfer {-S} [-dilpPnv] [-k | -e] [-b | -B] [-t] [-f /path/to/rsfile]
 #           {-R /path/to/src1,path/to/src2... | -N /path/to/src1,path/to/src2...}
 #           [-o option1=value1,option2=value2...] [-E pattern] [-L value]
 #           [-u snapshot] destination
@@ -121,6 +121,7 @@ option_n=0
 option_N=""
 option_S=0
 option_s=0
+option_t=0
 option_T=""
 option_u=0
 option_v=0
@@ -183,6 +184,8 @@ fbsd_readonly_properties="aclmode,aclinherit,devices,nbmand,shareiscsi,vscan,xat
 
 # Properties not supported on Solaris Express 11
 solexp_readonly_properties="jailed,aclmode,shareiscsi"
+
+# 
 
 #
 # Beeps a success sound if -B enabled, and a failure sound if -b or -B enabled.
@@ -255,12 +258,12 @@ init_variables() {
 usage() {
 cat <<EOT
 usage: 
-     zxfer [-dFnPsv] [-k | -e] [-b | -B] {-N path/to/src | -R path/to/src}
+     zxfer [-dFnPsv] [-k | -e] [-b | -B] [-t] {-N path/to/src | -R path/to/src}
            [-m [c FMRI|pattern[ FMRI|pattern]...]]] [-O user@host]
            [-D 'progress dialog options'] [-I properties,to,ignore]
            [-T user@host] [-o option1=value1,option2=value2...] [-g days]
            destination
-     zxfer {-S} [-dilpPnv] [-k | -e] [-b | -B] [-f /path/to/rsfile]
+     zxfer {-S} [-dilpPnv] [-k | -e] [-b | -B] [-t] [-f /path/to/rsfile]
            {-R /path/to/src1,path/to/src2... | -N /path/to/src1,path/to/src2...}
            [-o option1=value1,option2=value2...] [-E pattern] [-L value]
            [-u snapshot] destination
@@ -273,6 +276,17 @@ usage examples. To access the man page, type:
 $ man zxfer
 
 EOT
+}
+
+
+#
+# Append current timestamp to beginning of every echoed line #YOLO
+#
+echo() {
+  if [ $option_t -eq 1 ]; then
+    builtin echo -n "$(date "+[%Y-%m-%d %H:%M:%S] ")"
+  fi
+  builtin echo "$@"
 }
 
 
@@ -1850,7 +1864,7 @@ $backup_file_dir/$backup_file_extension.$is_tail\" | $option_T sh"
 #
 
 # Read command line switches
-while getopts bBc:deE:f:Fg:hiklL:lmnN:o:O:pPPR:sST:u:v?:D: i
+while getopts bBc:deE:f:Fg:hiklL:lmnN:o:O:pPPR:sStT:u:v?:D: i
 do
   case $i in
     b)
@@ -1938,6 +1952,9 @@ do
     S)
       option_S=1
       ;;
+	t)
+	  option_t=1
+	  ;;
     T)
       RZFS="ssh $OPTARG /sbin/zfs"
       option_T="ssh $OPTARG "
