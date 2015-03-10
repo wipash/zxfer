@@ -411,7 +411,7 @@ copy_snap() {
           SIZE_DATASET=$( $LZFS send -nPv "$copysrc" 2>&1 ) ||
             { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
-          echo "Estimated size is: ${SIZE_EST}"
+          echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo "$option_D" | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send "$copysrc" | dd obs=1m | dd bs=1m | $PROGRESS_DIALOG | \
@@ -421,7 +421,7 @@ copy_snap() {
           SIZE_DATASET=$( $LZFS send -nPv "$copysrc" 2>&1 ) ||
             { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
-          echo "Estimated size is: ${SIZE_EST}"
+          echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -nv "$copysrc"
@@ -443,7 +443,7 @@ copy_snap() {
           SIZE_DATASET=$( $LZFS send -nPv -i "$copyprev" "$copysrc" 2>&1 ) ||
             { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
-          echo "Estimated size is: ${SIZE_EST}"
+          echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -i "$copyprev" "$copysrc" | dd obs=1m | dd bs=1m | \
@@ -453,7 +453,7 @@ copy_snap() {
           SIZE_DATASET=$( $LZFS send -nPv -i "$copyprev" "$copysrc" 2>&1 ) ||
             { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
-          echo "Estimated size is: ${SIZE_EST}"
+          echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -nv -i "$copyprev" "$copysrc"
@@ -2331,5 +2331,6 @@ fi
   
 exit_status=0
 beep  # plays success or failure sound
+echov "Total run time: $(($(date +%s) - current_date))
 echov "Exiting"
 exit 0
