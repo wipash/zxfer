@@ -2331,6 +2331,6 @@ fi
   
 exit_status=0
 beep  # plays success or failure sound
-echov "Total run time: $(($(date +%s) - current_date))
+echov "Total run time: $(($(date +%s) - current_date))"
 echov "Exiting"
 exit 0
