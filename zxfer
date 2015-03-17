@@ -414,7 +414,7 @@ copy_snap() {
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo "$option_D" | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
-          $LZFS send "$copysrc" | dd obs=1m | dd bs=1m | $PROGRESS_DIALOG | \
+          $LZFS send "$copysrc" | dd obs=1M | dd bs=1M | $PROGRESS_DIALOG | \
             $RZFS receive $option_F "$copydest" || \
             { echo "Error when zfs send/receiving."; beep; exit 1; }
         else
@@ -425,7 +425,7 @@ copy_snap() {
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -nv "$copysrc"
-          echo "$LZFS send $copysrc | dd obs=1m | dd bs=1m | $PROGRESS_DIALOG |
+          echo "$LZFS send $copysrc | dd obs=1M | dd bs=1M | $PROGRESS_DIALOG |
             $RZFS receive $option_F $copydest"
         fi
       else
@@ -446,7 +446,7 @@ copy_snap() {
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
-          $LZFS send -i "$copyprev" "$copysrc" | dd obs=1m | dd bs=1m | \
+          $LZFS send -i "$copyprev" "$copysrc" | dd obs=1M | dd bs=1M | \
             $PROGRESS_DIALOG | $RZFS receive $option_F "$copydest" || \
             { echo "Error when zfs send/receiving."; beep; exit 1; }        
         else
@@ -457,7 +457,7 @@ copy_snap() {
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -nv -i "$copyprev" "$copysrc"
-          echo "$LZFS send -i $copyprev $copysrc | dd obs=1m | dd bs=1m | \
+          echo "$LZFS send -i $copyprev $copysrc | dd obs=1M | dd bs=1M | \
             $PROGRESS_DIALOG | $RZFS receive $option_F $copydest"      
         fi
       else
