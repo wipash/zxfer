@@ -2309,10 +2309,13 @@ else
     # assumed valid destination filesystem to copy to with a possible snapshot name
     # to give to the destination snapshot.
     #
+    copy_start=$(date +%s)
     copy_fs
     #
     # Now we have replicated all existing snapshots.
     #
+    copy_runtime=$(($(date +%s) - copy_start))
+    echov "Source: $source, Destination: $actual_dest, Runtime: $copy_runtime"
   done
 
 
