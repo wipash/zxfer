@@ -289,6 +289,13 @@ echov() {
   fi
 }
 
+echot() {
+  if [ $option_t -eq 1 ]; then
+    builtin echo -n "$(date "+[%Y-%m-%d %H:%M:%S]") [$$] "
+  fi
+  echo "$@"
+}
+
 
 #
 # Stop a list of SMF services. The services are read in from stdin.
@@ -298,7 +305,7 @@ stopsvcs() {
   while read service; do
     echov "Disabling service $service."
     svcadm disable -st "$service" || \
-      { echo "Could not disable service $service."; relaunch; exit 1; }
+      { echot "Could not disable service $service."; relaunch; exit 1; }
     torestart=$(echo $torestart $service)
   done
 }
@@ -310,7 +317,7 @@ stopsvcs() {
 relaunch() {
   for i in $torestart; do
     echov "Restarting service $i"
-    svcadm enable "$i" || { echo "Couldn't re-enable service $i."; exit; }
+    svcadm enable "$i" || { echot "Couldn't re-enable service $i."; exit; }
   done
 }
 
@@ -321,14 +328,14 @@ relaunch() {
 consistency_check() {
   # disallow backup and restore of properties at same time
   if [ $option_k -eq 1 -a $option_e -eq 1 ]; then
-    echo "Error: You cannot bac(k)up and r(e)store properties at the same time."
+    echot "Error: You cannot bac(k)up and r(e)store properties at the same time."
     usage
     exit 1
   fi
   
   # disallow both beep modes, enforce using one or the other.
   if [ $option_b -eq 1 -a $option_B -eq 1 ]; then
-    echo "Error: You cannot use both beep modes at the same time."
+    echot "Error: You cannot use both beep modes at the same time."
     usage
     exit 1
   fi
@@ -338,25 +345,25 @@ consistency_check() {
     
     # check for incompatible options
     if [ "$option_F" = "-F" ]; then
-      echo "Error: -F option cannot be used with -S (rsync mode)"
+      echot "Error: -F option cannot be used with -S (rsync mode)"
       usage
       exit 1
     fi
   
     if [ $option_s -eq 1 ]; then
-      echo "Error: -s option cannot be used with -S (rsync mode)"
+      echot "Error: -s option cannot be used with -S (rsync mode)"
       usage
       exit 1
     fi
   
     if [ "$option_O" != "" -o "$option_T" != "" ]; then
-      echo "Error: -O or -T option cannot be used with -S (rsync mode)"
+      echot "Error: -O or -T option cannot be used with -S (rsync mode)"
       usage
       exit 1
     fi
   
     if [ $option_m -eq 1 ]; then
-      echo "Error: -m option cannot be used with -S (rsync mode)"
+      echot "Error: -m option cannot be used with -S (rsync mode)"
       usage
       exit 1
     fi
@@ -366,13 +373,13 @@ consistency_check() {
   
     # check for incompatible options
     if [ "$option_f" != "" ]; then
-      echo "Error: -f option can only be used with -S (rsync mode)"
+      echot "Error: -f option can only be used with -S (rsync mode)"
       usage
       exit 1
     fi
   
     if [ "$option_L" != "" ]; then
-      echo "Error: -L option can only be used with -S (rsync mode)"
+      echot "Error: -L option can only be used with -S (rsync mode)"
       usage
       exit 1
     fi
@@ -380,7 +387,7 @@ consistency_check() {
     # disallow migration related options and remote transfers at same time
     if [ "$option_T" != "" -o "$option_O" != "" ]; then
       if [ $option_m -eq 1 -o "$services" != "" ]; then
-        echo "Error: You cannot migrate to or from a remote host."
+        echot "Error: You cannot migrate to or from a remote host."
         usage
         exit 1
       fi
@@ -409,17 +416,17 @@ copy_snap() {
       if [ "$option_D" != "" ]; then
         if [ $option_n -eq 0 ]; then
           SIZE_DATASET=$( $LZFS send -nPv "$copysrc" 2>&1 ) ||
-            { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
+            { echot "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo "$option_D" | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send "$copysrc" | dd obs=1M | dd bs=1M | $PROGRESS_DIALOG | \
             $RZFS receive $option_F "$copydest" || \
-            { echo "Error when zfs send/receiving."; beep; exit 1; }
+            { echot "Error when zfs send/receiving."; beep; exit 1; }
         else
           SIZE_DATASET=$( $LZFS send -nPv "$copysrc" 2>&1 ) ||
-            { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
+            { echot "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
@@ -431,7 +438,7 @@ copy_snap() {
       else
         if [ $option_n -eq 0 ]; then
           $LZFS send "$copysrc" | $RZFS receive $option_F "$copydest" || \
-            { echo "Error when zfs send/receiving."; beep; exit 1; }        
+            { echot "Error when zfs send/receiving."; beep; exit 1; }        
         else
           echo "$LZFS send $copysrc | $RZFS receive $option_F $copydest"
         fi
@@ -441,17 +448,17 @@ copy_snap() {
       if [ "$option_D" != "" ]; then
         if [ $option_n -eq 0 ]; then
           SIZE_DATASET=$( $LZFS send -nPv -i "$copyprev" "$copysrc" 2>&1 ) ||
-            { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
+            { echot "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
             sed "s#%%title%%#$copysrc#g" )
           $LZFS send -i "$copyprev" "$copysrc" | dd obs=1M | dd bs=1M | \
             $PROGRESS_DIALOG | $RZFS receive $option_F "$copydest" || \
-            { echo "Error when zfs send/receiving."; beep; exit 1; }        
+            { echot "Error when zfs send/receiving."; beep; exit 1; }        
         else
           SIZE_DATASET=$( $LZFS send -nPv -i "$copyprev" "$copysrc" 2>&1 ) ||
-            { echo "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
+            { echot "Error calculating estimate: $SIZE_DATASET"; beep; exit 1; }
           SIZE_EST=$( echo "$SIZE_DATASET" | grep ^size | tail -n 1 | cut -f 2 )
           echov "Estimated size is: ${SIZE_EST}"
           PROGRESS_DIALOG=$( echo $option_D | sed "s#%%size%%#$SIZE_EST#g" | \
@@ -463,7 +470,7 @@ copy_snap() {
       else
         if [ $option_n -eq 0 ]; then
           $LZFS send -i "$copyprev" "$copysrc" | $RZFS receive $option_F "$copydest" \
-            || { echo "Error when zfs send/receiving."; beep; exit 1; }
+            || { echot "Error when zfs send/receiving."; beep; exit 1; }
         else
           echo "$LZFS send -i $copyprev $copysrc | $RZFS receive $option_F
             $copydest"
@@ -526,7 +533,7 @@ newsnap() {
     echov "Creating recursive snapshot $sourcefs@$snap."
     if [ $option_n -eq 0 ]; then
       $LZFS snapshot -r "${sourcefs}@${snap}" || \
-          { echo "Error when snapshotting."; exit 1; }
+          { echot "Error when snapshotting."; exit 1; }
     else
       echo "$LZFS snapshot -r $sourcefs@$snap"
     fi
@@ -534,7 +541,7 @@ newsnap() {
     echov "Creating snapshot $sourcefs@$snap."
     if [ $option_n -eq 0 ]; then
       $LZFS snapshot "${sourcefs}@${snap}" || \
-          { echo "Error when snapshotting."; exit 1; }
+          { echot "Error when snapshotting."; exit 1; }
     else
       echo "$LZFS snapshot $sourcefs@$snap"
     fi
@@ -635,7 +642,7 @@ grep ^$source@) > /dev/null 2>&1
       echov "Destroying destination snapshot $dest_snap."
       if [ $option_n -eq 0 ]; then
         $RZFS destroy "$dest_snap" || \
-          { echo "Error when zfs destroying."; exit 1; }
+          { echot "Error when zfs destroying."; exit 1; }
       else
         echo "$RZFS destroy $dest_snap"
       fi
@@ -1026,7 +1033,7 @@ options $full_rs_options"
         $RSYNC $full_rs_options $rs_source $rs_dest  # persist in face of error
       else
         $RSYNC $full_rs_options $rs_source $rs_dest || \
-{ echo "Error when executing rsync."; beep; exit 1; }
+{ echot "Error when executing rsync."; beep; exit 1; }
       fi
     else
       echo "$RSYNC $full_rs_options $rs_source $rs_dest"
@@ -1473,7 +1480,7 @@ $override_value=$override_source,"
 
       if [ $option_n -eq 0 ]; then
         eval "$RZFS create $override_option_list $actual_dest" || \
-          { echo "Error when creating destination filesystem."; beep; exit 1; }
+          { echot "Error when creating destination filesystem."; beep; exit 1; }
       else
         echo "$RZFS create $override_option_list $actual_dest"
       fi
@@ -1509,7 +1516,7 @@ $override_value=$override_source,"
 with specified properties."
       if [ $option_n -eq 0 ]; then
         eval "$RZFS create -p $creation_option_list $actual_dest" || \
-          { echo "Error when creating destination filesystem."; beep; exit 1; }
+          { echot "Error when creating destination filesystem."; beep; exit 1; }
       else
         echo "$RZFS create -p $creation_option_list $actual_dest"
       fi
@@ -1707,7 +1714,7 @@ with specified properties."
 
       if [ $option_n -eq 0 ]; then
         $RZFS set "${ov_property}=${ov_value}" "$actual_dest" || \
-        { echo "Error when setting properties on destination filesystem.";\
+        { echot "Error when setting properties on destination filesystem.";\
 	beep; exit 1; }
       else
         echo "$RZFS set $ov_property=$ov_value $actual_dest"
@@ -1732,7 +1739,7 @@ with specified properties."
 
         if [ $option_n -eq 0 ]; then
            $RZFS inherit "$ov_property" "$actual_dest" || \
-            { echo "Error when inheriting properties on destination \
+            { echot "Error when inheriting properties on destination \
 filesystem."; beep; exit 1; }
         else
           echo "$RZFS inherit $ov_property $actual_dest"
@@ -1800,10 +1807,10 @@ $backup_file_extension.$suspect_fs_tail)
     else
       suspect_fs_parent=$(echo "$suspect_fs" | sed -e 's%/[^/]*$%%g')
       if [ $suspect_fs_parent = $suspect_fs ]; then
-        echo "Error: Cannot find backup property file. Ensure that it"
-        echo "exists and that it is in a directory corresponding to the"
-        echo "mountpoints of one of the ancestor filesystems of the source."
-        echo "The filename should be $backup_filename"
+        echot "Error: Cannot find backup property file. Ensure that it"
+        echot "exists and that it is in a directory corresponding to the"
+        echot "mountpoints of one of the ancestor filesystems of the source."
+        echot "The filename should be $backup_filename"
         usage
         exit 1
       else
@@ -1839,7 +1846,7 @@ $backup_file_contents"
   if [ $option_n -eq 0 ]; then
     echo "echo \"$backup_file_contents\" | tr \";\" \"\n\" > \
 $backup_file_dir/$backup_file_extension.$is_tail" | $option_T sh || \
-{ echo "Error writing backup file. Is filesystem mounted?"; beep; exit 1; }
+{ echot "Error writing backup file. Is filesystem mounted?"; beep; exit 1; }
   else
     echo "echo \"echo \"$backup_file_contents\" | tr \";\" \"\n\" > \
 $backup_file_dir/$backup_file_extension.$is_tail\" | $option_T sh"
@@ -1970,7 +1977,7 @@ destination=$1
 
 # Basic consistency checking
 if [ $# -lt 1 ]; then
-  echo "Error: Need a destination."
+  echot "Error: Need a destination."
   usage
   exit 1
 fi
@@ -2030,7 +2037,7 @@ if [ $option_S -eq 1 ]; then
     if [ -r "$option_f" ]; then
       rsync_options=$(cat "$option_f")
     else
-      echo "Error reading contents of $option_f."
+      echot "Error reading contents of $option_f."
       usage
       exit 1
     fi
@@ -2092,9 +2099,9 @@ if [ $option_S -eq 1 ]; then
       :     # if a directory, do nothing
     else
       # if not a directory, fail with error
-      echo "Error: Only directories are allowed when using recursive "
-      echo "rsync transfer mode (i.e. -R). If you are trying to transfer"
-      echo "a single file, use -N."
+      echot "Error: Only directories are allowed when using recursive "
+      echot "rsync transfer mode (i.e. -R). If you are trying to transfer"
+      echot "a single file, use -N."
       usage; beep
       exit 1
     fi
@@ -2145,9 +2152,9 @@ if [ $option_S -eq 1 ]; then
 else
   # zfs send/receive mode, aka zfs-replicate mode, aka normal mode
   if [ "$option_R" != "" -a "$option_N" != "" ]; then
-    echo "Error: If using normal mode (i.e. no -S), you must choose either -N to transfer"
-    echo "a single filesystem or -R to transfer a single filesystem and its children"
-    echo "recursively, but not both -N and -R at the same time."
+    echot "Error: If using normal mode (i.e. no -S), you must choose either -N to transfer"
+    echot "a single filesystem or -R to transfer a single filesystem and its children"
+    echot "recursively, but not both -N and -R at the same time."
     usage
     exit 1
   elif [ "$option_R" != "" ]; then
@@ -2155,7 +2162,7 @@ else
   elif [ "$option_N" != "" ]; then
     initial_source="$option_N"
   else
-    echo "Error: You must specify a source with either -N or -R."
+    echot "Error: You must specify a source with either -N or -R."
     usage
     exit 1
   fi
@@ -2163,7 +2170,7 @@ else
   # Source and destination can't start with "/", but it's an easy mistake to make
   if [ $(echo $initial_source | grep -c ^/) -eq "1" -o \
       $(echo $destination | grep -c ^/) -eq "1" ]; then
-    echo "Error:Source and destination must not begin with \"/\". Note the example."
+    echot "Error:Source and destination must not begin with \"/\". Note the example."
     usage
     exit 1
   fi
@@ -2175,7 +2182,7 @@ else
   # Enforce the when using -c you must use -m as well rule. This forces the user
   # To think twice if they really mean to do the migration.
   [ -n "$services" -a $option_m -eq 0 ] && \
-    { echo "When using -c, -m needs to be specified as well."; exit 1; }
+    { echot "When using -c, -m needs to be specified as well."; exit 1; }
 
 
   # Caches all the zfs list calls, gets the recursive list, and gives
@@ -2237,7 +2244,7 @@ else
       # unmount the source filesystem before doing the last snapshot.
       echov "Unmounting $source."
       $LZFS unmount "$source" || \
-        { echo "Couldn't unmount source $source."; relaunch; exit 1; }
+        { echot "Couldn't unmount source $source."; relaunch; exit 1; }
     done
   
     # We snapshot from the base of the initial source
@@ -2281,7 +2288,7 @@ else
     if [ $option_m -eq 1 ]; then
       source_to_migrate_mounted=$($LZFS get -Ho value mounted "$source")
       if [ "$source_to_migrate_mounted" = "yes" ]; then
-        echo "The source filesystem is not mounted, why use -m?"
+        echot "The source filesystem is not mounted, why use -m?"
 	exit 1
       fi
       mountpoint=$($LZFS get -Ho value mountpoint "$source")
