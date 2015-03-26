@@ -561,23 +561,23 @@ grandfather_test() {
   if [ $diff_day -ge $option_g ]; then
     snap_date_english=$($RZFS get -H -o value creation "$ds")
     current_date_english=$(date)
-    echo "Error: On the destination there is a snapshot marked for destruction"
-    echo "by zxfer that is protected by the use of the \"grandfather"
-    echo "protection\" option, -g."
-    echo
-    echo "You have set grandfather protection at $option_g days."
-    echo "Snapshot name: $ds"
-    echo "Snapshot age : $diff_day days old"
-    echo "Snapshot date: $snap_date_english." 
-    echo "Your current system date: $current_date_english."  
-    echo
-    echo "Either amend/remove option g, fix your system date, or manually"
-    echo "destroy the offending snapshot. Also double check that your"
-    echo "snapshot management tool isn't erroneously deleting source snapshots."
-    echo "Note that for option g to work correctly, you should set it just"
-    echo "above a number of days that will preclude \"father\" snapshots from"
-    echo "being encountered."
-    echo
+    echot "Error: On the destination there is a snapshot marked for destruction"
+    echot "by zxfer that is protected by the use of the \"grandfather"
+    echot "protection\" option, -g."
+    echot
+    echot "You have set grandfather protection at $option_g days."
+    echot "Snapshot name: $ds"
+    echot "Snapshot age : $diff_day days old"
+    echot "Snapshot date: $snap_date_english." 
+    echot "Your current system date: $current_date_english."  
+    echot
+    echot "Either amend/remove option g, fix your system date, or manually"
+    echot "destroy the offending snapshot. Also double check that your"
+    echot "snapshot management tool isn't erroneously deleting source snapshots."
+    echot "Note that for option g to work correctly, you should set it just"
+    echot "above a number of days that will preclude \"father\" snapshots from"
+    echot "being encountered."
+    echot
     usage; beep
     exit 1
   fi
@@ -704,14 +704,14 @@ get_zfs_list() {
 
   # Exit if source not sound
   if [ "$recursive_source_list" = "" ]; then
-    echo "Error: Source does not exist." 
+    echot "Error: Source does not exist." 
     usage
     exit 1
   fi
 
   #  Exit if destination not sound
   if [ "$recursive_dest_list" = "" ]; then
-    echo "Error: Destination filesystem does not exist. Create it first." 
+    echot "Error: Destination filesystem does not exist. Create it first." 
     usage
     exit 1
   fi
@@ -727,7 +727,7 @@ get_zfs_list_rsync_mode() {
 
   #  Exit if destination not sound
   if [ "$recursive_dest_list" = "" ]; then
-    echo "Error: Destination filesystem does not exist. Create it first." 
+    echot "Error: Destination filesystem does not exist. Create it first." 
     usage
     exit 1
   fi
@@ -748,7 +748,7 @@ get_zfs_list_rsync_mode() {
 
   if [ "$option_L" != "" ];then
     if [ $option_L -lt "1" ]; then
-      echo "Error: Option L, if specified, should be 1 or greater."
+      echot "Error: Option L, if specified, should be 1 or greater."
       usage
       exit 1
     fi
@@ -759,8 +759,8 @@ get_zfs_list_rsync_mode() {
     source_RN_trailing_slash=$(echo "$source_RN" | grep -c '..*/$')
 
     if [ $source_RN_trailing_slash -eq 1 ]; then
-      echo "Error: Do not specify trailing slashes in sources."
-      echo "There is no\
+      echot "Error: Do not specify trailing slashes in sources."
+      echot "There is no\
  meaning in the context of this program and so this has been disabled."
       usage
       exit 1
@@ -777,7 +777,7 @@ get_zfs_list_rsync_mode() {
         # count the "/" in the line, should be equal or greater to option_L
 	slash_no=$(echo "$fs" | $AWK '$0= NF-1' FS=/)
 	if [ "$slash_no" -lt "$option_L" ]; then
-	  echo "Error: If using option L, ensure that all source files and\
+	  echot "Error: If using option L, ensure that all source files and\
  directories are contained in filesystems with as many \"/\" as L."
           usage
 	  exit 1
@@ -785,7 +785,7 @@ get_zfs_list_rsync_mode() {
 	old_root_fs=$root_fs
 	root_fs=$(echo "$fs" | $AWK '{for (i=1; i <= '$inc_option_L'; i++) printf("%s%c", $i, (i=='$inc_option_L')?ORS:OFS)}' FS=/ OFS=/ ORS=)
         if [ "$root_fs" != "$old_root_fs" -a "$old_root_fs" != "" ]; then
-	  echo "Error: No common root filesystem. If using option L, ensure \
+	  echot "Error: No common root filesystem. If using option L, ensure \
 that each source file/directory comes from a common filesystem, and that the
 the level specified is not after this common filesystem. e.g. if your pool
 has been backed up to storage/backups/root_pool then the level you should
@@ -798,8 +798,8 @@ specify is \"2\"."
 
     # exit if source is bogus
     if [ "$temp_fs_list" = "" ]; then
-      echo "Error: Source in -N or -R option does not exist, or is stored"
-      echo "on a filesystem that is not ZFS."
+      echot "Error: Source in -N or -R option does not exist, or is stored"
+      echot "on a filesystem that is not ZFS."
       usage
       exit 1
     fi
@@ -822,9 +822,9 @@ specify is \"2\"."
   source_pool_list=$(echo "$source_fs_list" | cut -f1 -d/ | sort -u)
   source_pool_number=$(echo "$source_pool_list" | wc -l | sed -e 's/ //g' )
   if [ $source_pool_number -ne 1 ]; then
-    echo "Error: The sources you list are stored on a total of\
+    echot "Error: The sources you list are stored on a total of\
  "$source_pool_number" pools."
-    echo "Amend your list of sources until there is only one\
+    echot "Amend your list of sources until there is only one\
  pool relating to them all."
       usage
       exit 1
@@ -937,8 +937,8 @@ rsync_transfer() {
 
     if [ "$opt_src_fs_mountpoint" = "legacy" ]; then
       if [ $option_l -eq 0 ]; then
-        echo "Error: legacy mountpoint encountered. Enable -l to assume"
-	echo "that the legacy mountpoint is \"/\"."
+        echot "Error: legacy mountpoint encountered. Enable -l to assume"
+	echot "that the legacy mountpoint is \"/\"."
 	usage; beep
 	exit 1
       fi
@@ -988,8 +988,8 @@ sed -e "s%^$opt_src_fs_mountpoint%%g")
     dest_root_mountpoint=$($RZFS get -Ho value mountpoint "$dest_root")
     if [ "$dest_root_mountpoint" = "legacy" ]; then
       if [ $option_l -eq 0 ]; then
-        echo "Error: legacy mountpoint encountered. Enable -l to assume"
-	echo "that the legacy mountpoint is \"/\"."
+        echot "Error: legacy mountpoint encountered. Enable -l to assume"
+	echot "that the legacy mountpoint is \"/\"."
 	usage; beep
 	exit 1
       fi
@@ -1071,7 +1071,7 @@ check_snapshot() {
 
   # When using -s or -m, we don't want the source to be a snapshot.
   [ -n "$initial_sourcesnap" ] && \
-    { echo "Snapshots are not allowed as a source."; exit 1; }
+    { echot "Snapshots are not allowed as a source."; exit 1; }
 }
 
 
@@ -1337,7 +1337,7 @@ $source,$actual_dest,$source_pvs"
     source_pvs=$(echo "$restored_backup_file_contents" | grep "^[^,]*,$source,"\
  | sed -e 's/^[^,]*,[^,]*,//g')
     if [ "$source_pvs" = "" ]; then
-      echo "Error: can't find the properties for the filesystem $source"
+      echot "Error: can't find the properties for the filesystem $source"
       usage; beep
       exit 1
     fi
@@ -1373,7 +1373,7 @@ $source,$actual_dest,$source_pvs"
         fi
       done
       if [ $valid_option_property -eq 0 ]; then
-        echo "Error: Invalid option property - check -o list for syntax errors."
+        echot "Error: Invalid option property - check -o list for syntax errors."
         usage; beep
         exit 1
       else
@@ -1594,9 +1594,9 @@ with specified properties."
           if [ "$mc_property" = "$dest_property" \
             -a "$mc_property" = "$ov_property" ]; then
             if [ "$ov_value" != "$dest_value" ]; then
-              echo "Error: The property \"$dest_property\" may only be set"
-              echo "       at filesystem creation time. To modify this property"
-              echo "       you will need to first destroy target filesystem."
+              echot "Error: The property \"$dest_property\" may only be set"
+              echot "       at filesystem creation time. To modify this property"
+              echot "       you will need to first destroy target filesystem."
               usage; beep
               exit 1
             fi 
